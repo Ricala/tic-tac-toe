@@ -1,0 +1,22 @@
+*, *::after, *::before {
+  box-sizing: border-box;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  justify-content: center;
+  align-content: center;
+  width: 500px;
+  height: 500px;
+}
+.board .spot {
+  border: 1px solid black;
+  text-align: center;
+}
+.board .spot h1 {
+  padding: auto;
+}
+
+/*# sourceMappingURL=style.css.map */

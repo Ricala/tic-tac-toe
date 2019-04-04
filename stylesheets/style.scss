@@ -1,0 +1,21 @@
+*, *::after, *::before { box-sizing: border-box; }
+
+
+.board {
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  justify-content: center;
+  align-content: center;
+  width: 500px;
+  height: 500px;
+
+  .spot {
+    border: 1px solid black;
+    text-align: center;
+    
+    h1 {
+      padding: auto;
+    }
+  }
+}
