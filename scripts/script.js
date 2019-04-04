@@ -1,8 +1,8 @@
 const boardArea = document.querySelector('.board');
-let playerChoice = "";
-let game = gamePlay();
+let compChoice = "";
 
 function gamePlay () {
+  
 
   const winPositions = [[0,1,2],
                         [0,3,6],
@@ -13,7 +13,7 @@ function gamePlay () {
                         [3,4,5],
                         [1,4,7]];
   
-  function checkWinPosition(gameBoard) {
+  function checkWinPosition() {
     let positionCount = 0;
     //loop through possible winning conditions Array
     for (let arr = 0; arr < winPositions.length; arr++){
@@ -27,29 +27,42 @@ function gamePlay () {
         let arrValue = eachArr[arrIndex];
 
         //use index to check for match against gameBoard
-        if(gameBoard[arrValue] == playerChoice) {
+        if(gameBoardHandler.gameBoard[arrValue] == playerHandler.getPlayerChoice()) {
           positionCount++;
 
           //complete game if 3 in a row
           if(positionCount == 3) {
             console.log("Win")
+            winner();
+            break;
           }
         } else {
           positionCount = 0;
         }
       }
     }
+    playerHandler.swapPlayerTurn();
   }
 
-  return  {checkWinPosition};
-}
-gamePlay();
+  function turnComplete () {
+    checkWinPosition();
+  }
 
-const gameBoard = (() => {
+  function winner() {
+    let winMessage = document.createElement("h1");
+    winMessage.appendChild(document.createTextNode("You Win"));
+    boardArea.appendChild(winMessage);
+  }
+
+  return  {turnComplete};
+}
+
+const gameBoardHandler = (() => {
   const gameBoard = [0,1,2,3,4,5,6,7,8];
   
   function renderBoard(){
     for(let i = 0; i < 9; i++) {
+      
       if(gameBoard[i] == "X")
       {
         //Check if spot already has a child
@@ -84,22 +97,42 @@ const gameBoard = (() => {
 
   function checkSpot (spot, index) {
     if (spot !== "X" && spot !== "O"){
+      if(playerHandler.getPlayerChoice() !== "") {
       setSpot(index);
+      }
     }
   }
   
   function setSpot (index) {
-    gameBoard[index] = playerChoice;
+    if(playerHandler.isPlayerTurn()) {
+      gameBoard[index] = playerHandler.getPlayerChoice();
+      console.log("playerset")
+      console.log(gameBoard);
+    } else{
+      gameBoard[index] = computerHandler().getCompChoice();
+      console.log("computerSet")
+      console.log(gameBoard);
+    }
     renderBoard();
-    gamePlay().checkWinPosition(gameBoard);
+    completeTurn();
   };
 
-  return {gameBoard};
+  function completeTurn() {
+    gamePlay().turnComplete();
+    
+    playerHandler.enableBtn();
+  }
+
+  return {
+    gameBoard,
+    checkSpot
+  };
 })();
 
-console.log(gameBoard);
-
-const player = (() => {
+const playerHandler = (() => {
+  let playerChoice = "";
+  let playerTurn = true;
+  let selectBtns = document.querySelector(".play-btns");
 
   const playerBtnListener = (() => {
     let xBtn = document.querySelector('#x-btn');
@@ -107,39 +140,85 @@ const player = (() => {
 
     xBtn.addEventListener("click", function() {
       setPlayer("X");
+      computerHandler().setCompChoice("O");
       disableBtn();
     })
 
     oBtn.addEventListener("click", function() {
       setPlayer("O");
+      computerHandler().setCompChoice("X");
       disableBtn();
     })
 
-    function disableBtn() {
-      xBtn.disabled = true;
-      oBtn.disabled = true;
-    }
+  })();
+  
+  function disableBtn() {
+    selectBtns.style.display = "none";
+  }
 
-    function enableBtn() {
-      xBtn.disabled = false;
-      oBtn.disabled = false;
-    }
+  function enableBtn() {
+    selectBtns.style.display = "block";
+  }
+  function setPlayer(choice) {
+    playerChoice = choice;
+  }
 
-    function setPlayer(choice) {
-      playerChoice = choice;
-    }
+  function getPlayerChoice(){
+    return playerChoice;
+  }
 
-    function getPlayerChoice(){
-      return playerChoice;
+  function swapPlayerTurn() {
+    if (playerTurn) {
+      playerTurn = false;
+      setTimeout(function(){ 
+        computerHandler().compTurn();}, 300);
+      
+    } else {
+      playerTurn = true;
     }
+  }
 
-    return {
-      getPlayerChoice,
-      enableBtn
-    }
-  })();;
+  function isPlayerTurn(){
+    return playerTurn;
+  }
 
   return {
-    playerBtnListener
+    getPlayerChoice,
+    enableBtn,
+    swapPlayerTurn,
+    isPlayerTurn
   }
 })();
+
+function computerHandler() {
+  let contineTurn = true;
+
+  function setCompChoice(choice) {
+    compChoice = choice;
+    console.log("computer choice set")
+    console.log(compChoice);
+  }
+
+  function getCompChoice() {
+    return compChoice;
+  }
+
+
+  function compTurn() {
+    let continueTurn = true;
+
+    while(continueTurn) {
+      let compPosition = Math.floor(Math.random() * 9);
+      console.log(gameBoardHandler.gameBoard[compPosition]);
+      gameBoardHandler.checkSpot(gameBoardHandler.gameBoard[compPosition], compPosition);
+      continueTurn = false;
+    }
+
+  }
+
+  return {
+    compTurn,
+    getCompChoice,
+    setCompChoice
+  }
+}
