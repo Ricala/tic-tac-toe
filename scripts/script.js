@@ -14,10 +14,12 @@ function gamePlay () {
                         [1,4,7]];
   
   function checkWinPosition() {
-    let positionCount = 0;
+    let playerPointCount = 0;
+    let compPointCount = 0;
     //loop through possible winning conditions Array
     for (let arr = 0; arr < winPositions.length; arr++){
-      positionCount = 0;
+      playerPointCount = 0;
+      compPointCount = 0;
 
       //loop through each smaller array from winPositions
       let eachArr = winPositions[arr];
@@ -28,30 +30,51 @@ function gamePlay () {
 
         //use index to check for match against gameBoard
         if(gameBoardHandler.gameBoard[arrValue] == playerHandler.getPlayerChoice()) {
-          positionCount++;
+          playerPointCount++;
 
-          //complete game if 3 in a row
-          if(positionCount == 3) {
-            console.log("Win")
-            winner();
-            break;
-          }
+        } else if (gameBoardHandler.gameBoard[arrValue] == computerHandler().getCompChoice()){
+            compPointCount++;
+          
         } else {
-          positionCount = 0;
+            playerPointCount = 0;
+            compPointCount = 0;
+        }
+        if(playerPointCount == 3 || compPointCount == 3) {
+          if(playerPointCount == 3) {
+            winner(true);
+          }
+          else {
+            winner(false);
+          }
+          break;
         }
       }
     }
-    playerHandler.swapPlayerTurn();
   }
 
   function turnComplete () {
     checkWinPosition();
+    if(gameBoardHandler.getAvailableMoves() == 0){
+      gameOver();
+    }
+    playerHandler.swapPlayerTurn();
   }
 
-  function winner() {
+  function winner(winner) {
     let winMessage = document.createElement("h1");
-    winMessage.appendChild(document.createTextNode("You Win"));
+    if(winner) {
+      winMessage.appendChild(document.createTextNode("You Win"));
+    }else {
+      winMessage.appendChild(document.createTextNode("You Lose"));
+
+    }
+
     boardArea.appendChild(winMessage);
+    gameBoardHandler.removeListeners();
+  }
+
+  function gameOver() {
+    alert("GAMEOVER");
   }
 
   return  {turnComplete};
@@ -59,6 +82,7 @@ function gamePlay () {
 
 const gameBoardHandler = (() => {
   const gameBoard = [0,1,2,3,4,5,6,7,8];
+  let availableMoves = 9;
   
   function renderBoard(){
     for(let i = 0; i < 9; i++) {
@@ -92,7 +116,15 @@ const gameBoardHandler = (() => {
         checkSpot(gameBoard[i], i)
       });
     }
-  })();  
+  })();
+  
+  function removeListeners() {
+    console.log("remove listeners")
+    for (let i = 0; i < gameBoard.length; i++) {
+      let spot = document.querySelector(`.spot${i}`)
+      spot.removeEventListener("click", function(){}, false);
+    }
+  }
 
 
   function checkSpot (spot, index) {
@@ -100,32 +132,41 @@ const gameBoardHandler = (() => {
       if(playerHandler.getPlayerChoice() !== "") {
       setSpot(index);
       }
+      return false;
     }
+    return true;
   }
   
   function setSpot (index) {
     if(playerHandler.isPlayerTurn()) {
       gameBoard[index] = playerHandler.getPlayerChoice();
-      console.log("playerset")
-      console.log(gameBoard);
     } else{
       gameBoard[index] = computerHandler().getCompChoice();
-      console.log("computerSet")
-      console.log(gameBoard);
     }
     renderBoard();
+    availableMoves--;
     completeTurn();
+    console.log(availableMoves);
   };
 
   function completeTurn() {
     gamePlay().turnComplete();
-    
     playerHandler.enableBtn();
+  }
+
+  function getAvailableMoves () {
+    return availableMoves;
+  }
+
+  function resetAvailableMoves() {
+    availableMoves = 9;
   }
 
   return {
     gameBoard,
-    checkSpot
+    checkSpot,
+    removeListeners,
+    getAvailableMoves
   };
 })();
 
@@ -191,34 +232,37 @@ const playerHandler = (() => {
 })();
 
 function computerHandler() {
-  let contineTurn = true;
+  let continueTurn = true;
 
   function setCompChoice(choice) {
     compChoice = choice;
-    console.log("computer choice set")
-    console.log(compChoice);
   }
 
   function getCompChoice() {
     return compChoice;
   }
 
-
   function compTurn() {
-    let continueTurn = true;
-
-    while(continueTurn) {
-      let compPosition = Math.floor(Math.random() * 9);
-      console.log(gameBoardHandler.gameBoard[compPosition]);
-      gameBoardHandler.checkSpot(gameBoardHandler.gameBoard[compPosition], compPosition);
-      continueTurn = false;
+    if(gameBoardHandler.getAvailableMoves() !== 0) {
+      while(continueTurn) {
+        let compPosition = Math.floor(Math.random() * 9);
+        continueTurn = gameBoardHandler.checkSpot(gameBoardHandler.gameBoard[compPosition], compPosition);
+      }
     }
+  }
 
+  function swapContinueTurn() {
+    if(continueTurn) {
+      continueTurn = false;
+    } else {
+      continueTurn = true;
+    }
   }
 
   return {
     compTurn,
     getCompChoice,
-    setCompChoice
+    setCompChoice,
+    swapContinueTurn
   }
 }
