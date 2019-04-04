@@ -1,5 +1,49 @@
 const boardArea = document.querySelector('.board');
 let playerChoice = "";
+let game = gamePlay();
+
+function gamePlay () {
+
+  const winPositions = [[0,1,2],
+                        [0,3,6],
+                        [0,4,8],
+                        [2,5,8],
+                        [2,4,6],
+                        [6,7,8],
+                        [3,4,5],
+                        [1,4,7]];
+  
+  function checkWinPosition(gameBoard) {
+    let positionCount = 0;
+    //loop through possible winning conditions Array
+    for (let arr = 0; arr < winPositions.length; arr++){
+      positionCount = 0;
+
+      //loop through each smaller array from winPositions
+      let eachArr = winPositions[arr];
+      for(let arrIndex = 0; arrIndex < winPositions[arr].length; arrIndex++) {
+
+        //assign value from individual array to use as index
+        let arrValue = eachArr[arrIndex];
+
+        //use index to check for match against gameBoard
+        if(gameBoard[arrValue] == playerChoice) {
+          positionCount++;
+
+          //complete game if 3 in a row
+          if(positionCount == 3) {
+            console.log("Win")
+          }
+        } else {
+          positionCount = 0;
+        }
+      }
+    }
+  }
+
+  return  {checkWinPosition};
+}
+gamePlay();
 
 const gameBoard = (() => {
   const gameBoard = [0,1,2,3,4,5,6,7,8];
@@ -17,8 +61,6 @@ const gameBoard = (() => {
         }
       } else if (gameBoard[i] == "O") {
           //check if spot already has a child
-          console.log("Should be O");
-          console.log(playerChoice);
           let oSpot = document.querySelector(`.spot${i}`);
           if(!oSpot.hasChildNodes()) {
             let oText = document.createElement('h1');
@@ -49,6 +91,7 @@ const gameBoard = (() => {
   function setSpot (index) {
     gameBoard[index] = playerChoice;
     renderBoard();
+    gamePlay().checkWinPosition(gameBoard);
   };
 
   return {gameBoard};
@@ -84,8 +127,6 @@ const player = (() => {
 
     function setPlayer(choice) {
       playerChoice = choice;
-      console.log("playerchoice set")
-      console.log(playerChoice);
     }
 
     function getPlayerChoice(){
@@ -93,7 +134,8 @@ const player = (() => {
     }
 
     return {
-      getPlayerChoice
+      getPlayerChoice,
+      enableBtn
     }
   })();;
 
