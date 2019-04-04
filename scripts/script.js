@@ -29,10 +29,11 @@ function gamePlay () {
         let arrValue = eachArr[arrIndex];
 
         //use index to check for match against gameBoard
-        if(gameBoardHandler.gameBoard[arrValue] == playerHandler.getPlayerChoice()) {
+        let gameArr = gameBoardHandler.getGameBoard();
+        if(gameArr[arrValue] == playerHandler.getPlayerChoice()) {
           playerPointCount++;
 
-        } else if (gameBoardHandler.gameBoard[arrValue] == computerHandler().getCompChoice()){
+        } else if (gameArr[arrValue] == computerHandler().getCompChoice()){
             compPointCount++;
           
         } else {
@@ -41,12 +42,13 @@ function gamePlay () {
         }
         if(playerPointCount == 3 || compPointCount == 3) {
           if(playerPointCount == 3) {
-            winner(true);
+            playerPointCount = 0;
+            winner(true, eachArr);
           }
           else {
-            winner(false);
+            compPointCount = 0;
+            winner(false, eachArr);
           }
-          break;
         }
       }
     }
@@ -56,36 +58,65 @@ function gamePlay () {
     checkWinPosition();
     if(gameBoardHandler.getAvailableMoves() == 0){
       gameOver();
-    }
+    } else {
     playerHandler.swapPlayerTurn();
+    }
   }
 
-  function winner(winner) {
+  function winner(winner, eachArr) {
     let winMessage = document.createElement("h1");
+    winMessage.className="gameoverMessage";
+    let win = false;
     if(winner) {
       winMessage.appendChild(document.createTextNode("You Win"));
+      win = true;
     }else {
       winMessage.appendChild(document.createTextNode("You Lose"));
-
     }
-
+    highlightWin(eachArr, win);
     boardArea.appendChild(winMessage);
-    gameBoardHandler.removeListeners();
+    gameOver();
   }
 
   function gameOver() {
-    alert("GAMEOVER");
+    console.log("gameover");
+    playerHandler.resetPlayer();
+    playerHandler.swapPlayerTurn();
+  }
+
+  function highlightWin(eachArr, win) {
+    for(let i = 0; i < eachArr.length; i++) {
+      let winningSpot = [eachArr[i]];
+      let eachSpot = document.querySelector(`.spot${winningSpot}`);
+      if(win){
+        eachSpot.style.backgroundColor = "green";
+      } else {
+        eachSpot.style.backgroundColor = "red";
+
+      }
+    }
+
   }
 
   return  {turnComplete};
 }
 
 const gameBoardHandler = (() => {
-  const gameBoard = [0,1,2,3,4,5,6,7,8];
+  let gameBoard = [0,1,2,3,4,5,6,7,8];
   let availableMoves = 9;
+  let reset= false;
   
   function renderBoard(){
     for(let i = 0; i < 9; i++) {
+
+      if(reset) {
+        let eachSpot = document.querySelector(`.spot${i}`);
+        eachSpot.style.backgroundColor = "";
+
+        while(eachSpot.firstChild) {
+          eachSpot.removeChild(eachSpot.firstChild);
+        }
+      }
       
       if(gameBoard[i] == "X")
       {
@@ -116,17 +147,13 @@ const gameBoardHandler = (() => {
         checkSpot(gameBoard[i], i)
       });
     }
+
+    let resetBtn = document.querySelector(".restart-btn");
+    resetBtn.addEventListener("click", function() {
+      resetBoard();
+    })
   })();
   
-  function removeListeners() {
-    console.log("remove listeners")
-    for (let i = 0; i < gameBoard.length; i++) {
-      let spot = document.querySelector(`.spot${i}`)
-      spot.removeEventListener("click", function(){}, false);
-    }
-  }
-
-
   function checkSpot (spot, index) {
     if (spot !== "X" && spot !== "O"){
       if(playerHandler.getPlayerChoice() !== "") {
@@ -140,33 +167,50 @@ const gameBoardHandler = (() => {
   function setSpot (index) {
     if(playerHandler.isPlayerTurn()) {
       gameBoard[index] = playerHandler.getPlayerChoice();
+      console.log("putting playerturn")
     } else{
       gameBoard[index] = computerHandler().getCompChoice();
+      console.log("putting computerTurn")
     }
     renderBoard();
     availableMoves--;
     completeTurn();
-    console.log(availableMoves);
   };
 
   function completeTurn() {
     gamePlay().turnComplete();
-    playerHandler.enableBtn();
   }
 
   function getAvailableMoves () {
     return availableMoves;
   }
 
-  function resetAvailableMoves() {
+  function resetBoard() {
     availableMoves = 9;
+    gameBoard = [0,1,2,3,4,5,6,7,8];
+    playerHandler.resetPlayer();
+    reset = true;
+    playerHandler.enableBtn();
+    for(let i = 0; i < 9; i++) {
+      renderBoard();
+    }
+    reset = false; 
+
+    let message = document.querySelector(".gameoverMessage");
+    message.removeChild(message.firstChild);
+
+    renderBoard();
+  }
+
+  function getGameBoard() {
+    return gameBoard;
   }
 
   return {
-    gameBoard,
+    getGameBoard,
     checkSpot,
-    removeListeners,
-    getAvailableMoves
+    getAvailableMoves,
+    resetBoard
   };
 })();
 
@@ -183,6 +227,7 @@ const playerHandler = (() => {
       setPlayer("X");
       computerHandler().setCompChoice("O");
       disableBtn();
+      playerturn = true;
     })
 
     oBtn.addEventListener("click", function() {
@@ -200,12 +245,21 @@ const playerHandler = (() => {
   function enableBtn() {
     selectBtns.style.display = "block";
   }
+
   function setPlayer(choice) {
     playerChoice = choice;
   }
 
   function getPlayerChoice(){
     return playerChoice;
+  }
+
+  function resetPlayer() {
+    playerChoice = "";
+    playerTurn = true;
+    console.log("playerreset")
+    console.log(playerTurn)
+    console.log(playerChoice)
   }
 
   function swapPlayerTurn() {
@@ -227,7 +281,9 @@ const playerHandler = (() => {
     getPlayerChoice,
     enableBtn,
     swapPlayerTurn,
-    isPlayerTurn
+    isPlayerTurn,
+    resetPlayer,
+    playerTurn
   }
 })();
 
@@ -246,7 +302,8 @@ function computerHandler() {
     if(gameBoardHandler.getAvailableMoves() !== 0) {
       while(continueTurn) {
         let compPosition = Math.floor(Math.random() * 9);
-        continueTurn = gameBoardHandler.checkSpot(gameBoardHandler.gameBoard[compPosition], compPosition);
+        let gameArr = gameBoardHandler.getGameBoard();
+        continueTurn = gameBoardHandler.checkSpot(gameArr[compPosition], compPosition);
       }
     }
   }
