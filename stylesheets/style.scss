@@ -12,7 +12,14 @@ body {
   background-color: rgb(233, 227, 227);
   
   .main-title{
+    font-size: 4rem;
+    border-bottom: 2px solid gray;
+    background-color: white;
   }
+}
+
+button:hover {
+  cursor: pointer;
 }
 
 .board {
@@ -26,7 +33,8 @@ body {
   height: 550px;
   color: black;
   text-shadow: 2px 2px rgb(255, 251, 251);
-  background-color: rgba(245, 241, 241, 0.603); 
+  background-color: rgba(245, 241, 241, 0.603);
+  box-shadow: 0px 0px 20px black; 
 
   div:first-child {
     border-right: $border-size solid $border-color;
@@ -95,7 +103,7 @@ body {
     border: solid 4px gray;
     background-color: $button-background;
     color: white;
-    font-size: 1.5rem;
+    font-size: 2rem;
     animation: $border-color;
     animation: blink 3s linear infinite alternate;
   }
