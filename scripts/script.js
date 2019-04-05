@@ -64,17 +64,7 @@ function gamePlay () {
   }
 
   function winner(winner, eachArr) {
-    let winMessage = document.createElement("h1");
-    winMessage.className="gameoverMessage";
-    let win = false;
-    if(winner) {
-      winMessage.appendChild(document.createTextNode("You Win"));
-      win = true;
-    }else {
-      winMessage.appendChild(document.createTextNode("You Lose"));
-    }
-    highlightWin(eachArr, win);
-    boardArea.appendChild(winMessage);
+    highlightWin(eachArr, winner);
     gameOver();
   }
 
@@ -88,10 +78,11 @@ function gamePlay () {
     for(let i = 0; i < eachArr.length; i++) {
       let winningSpot = [eachArr[i]];
       let eachSpot = document.querySelector(`.spot${winningSpot}`);
+      eachSpot.className += " winning-color";
       if(win){
-        eachSpot.style.backgroundColor = "green";
+        eachSpot.className += " color-win"
       } else {
-        eachSpot.style.backgroundColor = "red";
+        eachSpot.className += " color-lose"
 
       }
     }
@@ -105,13 +96,17 @@ const gameBoardHandler = (() => {
   let gameBoard = [0,1,2,3,4,5,6,7,8];
   let availableMoves = 9;
   let reset= false;
+  let resetBtn = document.querySelector(".restart-btn");
+
   
   function renderBoard(){
     for(let i = 0; i < 9; i++) {
 
       if(reset) {
         let eachSpot = document.querySelector(`.spot${i}`);
-        eachSpot.style.backgroundColor = "";
+        eachSpot.classList.remove("winning-color");
+        eachSpot.classList.remove("color-win");
+        eachSpot.classList.remove("color-lose");
 
         while(eachSpot.firstChild) {
           eachSpot.removeChild(eachSpot.firstChild);
@@ -148,10 +143,10 @@ const gameBoardHandler = (() => {
       });
     }
 
-    let resetBtn = document.querySelector(".restart-btn");
     resetBtn.addEventListener("click", function() {
       resetBoard();
     })
+    disableRestart();
   })();
   
   function checkSpot (spot, index) {
@@ -185,32 +180,40 @@ const gameBoardHandler = (() => {
     return availableMoves;
   }
 
-  function resetBoard() {
-    availableMoves = 9;
-    gameBoard = [0,1,2,3,4,5,6,7,8];
-    playerHandler.resetPlayer();
-    reset = true;
-    playerHandler.enableBtn();
-    for(let i = 0; i < 9; i++) {
-      renderBoard();
-    }
-    reset = false; 
+  function disableRestart() {
+    resetBtn.style.display = 'none';
+  }
 
-    let message = document.querySelector(".gameoverMessage");
-    message.removeChild(message.firstChild);
-
-    renderBoard();
+  function enableRestart() {
+    resetBtn.style.display = 'block';
   }
 
   function getGameBoard() {
     return gameBoard;
   }
 
+  function resetBoard() {
+    availableMoves = 9;
+    gameBoard = [0,1,2,3,4,5,6,7,8];
+    playerHandler.resetPlayer();
+    reset = true;
+    playerHandler.enableBtn();
+    disableRestart();
+    for(let i = 0; i < 9; i++) {
+      renderBoard();
+    }
+    reset = false; 
+
+    renderBoard();
+  }
+
+
   return {
     getGameBoard,
     checkSpot,
     getAvailableMoves,
-    resetBoard
+    resetBoard,
+    enableRestart
   };
 })();
 
@@ -240,10 +243,12 @@ const playerHandler = (() => {
   
   function disableBtn() {
     selectBtns.style.display = "none";
+    gameBoardHandler.enableRestart();
   }
 
   function enableBtn() {
     selectBtns.style.display = "block";
+
   }
 
   function setPlayer(choice) {
@@ -266,7 +271,7 @@ const playerHandler = (() => {
     if (playerTurn) {
       playerTurn = false;
       setTimeout(function(){ 
-        computerHandler().compTurn();}, 300);
+        computerHandler().compTurn();}, 200);
       
     } else {
       playerTurn = true;
