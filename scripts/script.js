@@ -3,7 +3,6 @@ let compChoice = "";
 
 function gamePlay () {
   
-
   const winPositions = [[0,1,2],
                         [0,3,6],
                         [0,4,8],
@@ -69,12 +68,13 @@ function gamePlay () {
   }
 
   function gameOver() {
-    console.log("gameover");
     playerHandler.resetPlayer();
     playerHandler.swapPlayerTurn();
   }
 
   function highlightWin(eachArr, win) {
+
+    //Assign class to winning positions
     for(let i = 0; i < eachArr.length; i++) {
       let winningSpot = [eachArr[i]];
       let eachSpot = document.querySelector(`.spot${winningSpot}`);
@@ -86,7 +86,6 @@ function gamePlay () {
 
       }
     }
-
   }
 
   return  {turnComplete};
@@ -98,33 +97,33 @@ const gameBoardHandler = (() => {
   let reset= false;
   let resetBtn = document.querySelector(".restart-btn");
 
-  
   function renderBoard(){
     for(let i = 0; i < 9; i++) {
 
       if(reset) {
+        //remove all dynamic classes
         let eachSpot = document.querySelector(`.spot${i}`);
         eachSpot.classList.remove("winning-color");
         eachSpot.classList.remove("color-win");
         eachSpot.classList.remove("color-lose");
 
+        //remove all X's and O's
         while(eachSpot.firstChild) {
           eachSpot.removeChild(eachSpot.firstChild);
         }
       }
       
-      if(gameBoard[i] == "X")
-      {
-        //Check if spot already has a child
+      if(gameBoard[i] == "X") {
         let xSpot = document.querySelector(`.spot${i}`);
+        //Check if spot already has a child
         if(!xSpot.hasChildNodes()) {
           let xText = document.createElement('h1');
           xText.appendChild(document.createTextNode("X"));
           xSpot.appendChild(xText);
         }
       } else if (gameBoard[i] == "O") {
+        let oSpot = document.querySelector(`.spot${i}`);
           //check if spot already has a child
-          let oSpot = document.querySelector(`.spot${i}`);
           if(!oSpot.hasChildNodes()) {
             let oText = document.createElement('h1');
             oText.appendChild(document.createTextNode("O"));
@@ -162,10 +161,8 @@ const gameBoardHandler = (() => {
   function setSpot (index) {
     if(playerHandler.isPlayerTurn()) {
       gameBoard[index] = playerHandler.getPlayerChoice();
-      console.log("putting playerturn")
     } else{
-      gameBoard[index] = computerHandler().getCompChoice();
-      console.log("putting computerTurn")
+      gameBoard[index] = computerHandler().getCompChoice();      
     }
     renderBoard();
     availableMoves--;
@@ -196,17 +193,15 @@ const gameBoardHandler = (() => {
     availableMoves = 9;
     gameBoard = [0,1,2,3,4,5,6,7,8];
     playerHandler.resetPlayer();
-    reset = true;
     playerHandler.enableBtn();
     disableRestart();
+    reset = true;
     for(let i = 0; i < 9; i++) {
       renderBoard();
     }
     reset = false; 
-
     renderBoard();
   }
-
 
   return {
     getGameBoard,
@@ -226,6 +221,7 @@ const playerHandler = (() => {
     let xBtn = document.querySelector('#x-btn');
     let oBtn = document.querySelector('#o-btn');
 
+    //Sets player and computer markers
     xBtn.addEventListener("click", function() {
       setPlayer("X");
       computerHandler().setCompChoice("O");
@@ -248,7 +244,6 @@ const playerHandler = (() => {
 
   function enableBtn() {
     selectBtns.style.display = "block";
-
   }
 
   function setPlayer(choice) {
@@ -262,17 +257,15 @@ const playerHandler = (() => {
   function resetPlayer() {
     playerChoice = "";
     playerTurn = true;
-    console.log("playerreset")
-    console.log(playerTurn)
-    console.log(playerChoice)
   }
 
   function swapPlayerTurn() {
     if (playerTurn) {
       playerTurn = false;
+
+      //delays computer turn
       setTimeout(function(){ 
         computerHandler().compTurn();}, 200);
-      
     } else {
       playerTurn = true;
     }
